@@ -5,8 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>IVcode</title>
 
-  <!-- أيقونة التبويب مدمج مباشرة كـ Data URI لضمان عملها فوراً على GitHub Pages بدون مشاكل مسارات -->
+  <!-- أيقونة التبويب مدمجة كـ Data URI -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23000'/><path d='M80 20 C50 5, 10 25, 15 55 C20 85, 55 95, 85 80 L75 70 C55 80, 28 72, 26 55 C24 38, 50 20, 72 30 Z' fill='%23fff'/><polygon points='80,20 68,32 90,15' fill='%23fff'/><rect x='38' y='38' width='6' height='26' fill='%23fff'/><polygon points='50,38 56,38 64,56 72,38 78,38 67,64 61,64' fill='%23fff'/></svg>" />
+
+  <!-- مكتبة HTMX لجعل الواجهة حية وتفاعلية بدون جافاسكربت خارجي -->
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -14,7 +17,7 @@
     body {
       background-color: #000000;
       color: #fff;
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
       position: relative;
       overflow-x: hidden;
@@ -110,15 +113,21 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      height: 60px;
-      background-color: rgba(0, 0, 0, 0.8);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.9);
+      height: 65px;
+      background-color: rgba(0, 0, 0, 0.85);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.95);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 20px;
-      backdrop-filter: blur(8px);
+      padding: 0 24px;
+      backdrop-filter: blur(12px);
+    }
+
+    .brand-container {
+      display: flex;
+      align-items: center;
+      gap: 28px;
     }
 
     .brand {
@@ -127,110 +136,206 @@
       gap: 12px;
       text-decoration: none;
       color: #fff;
+      cursor: pointer;
     }
 
     .brand-svg {
-      width: 36px;
-      height: 36px;
-      filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.6));
+      width: 38px;
+      height: 38px;
+      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.7));
     }
 
     .brand-title {
       font-weight: 800;
-      font-size: 1.3rem;
-      letter-spacing: 1px;
+      font-size: 1.4rem;
+      letter-spacing: 1.5px;
+      background: linear-gradient(180deg, #ffffff 0%, #a1a1a1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
-    .search-bar {
-      width: 40%;
-      max-width: 500px;
+    /* القوائم في الأعلى */
+    .top-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      list-style: none;
+    }
+
+    .top-nav-links button {
+      background: none;
+      border: none;
+      color: #8b949e;
+      font-size: 0.92rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .top-nav-links button:hover {
+      color: #ffffff;
+    }
+
+    .search-container {
+      position: relative;
+      width: 30%;
+      max-width: 400px;
     }
 
     .search-bar input {
       width: 100%;
-      padding: 8px 14px;
-      border-radius: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.05);
+      padding: 9px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
       color: #fff;
       outline: none;
       font-size: 0.9rem;
+      transition: all 0.3s ease;
     }
 
     .search-bar input:focus {
       border-color: #58a6ff;
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 12px rgba(88, 166, 255, 0.3);
+    }
+
+    #search-results {
+      position: absolute;
+      top: 110%;
+      left: 0;
+      width: 100%;
+      z-index: 200;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 0.9rem;
+      color: #8b949e;
     }
 
     /* --- المحتوى الرئيسي --- */
     .app-container {
       display: flex;
       justify-content: center;
-      min-height: calc(100vh - 60px);
+      min-height: calc(100vh - 65px);
       position: relative;
       z-index: 1;
     }
 
     .content-area {
       width: 100%;
-      padding: 40px 20px;
+      padding: 40px 20px 60px;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 24px;
-      max-width: 850px;
+      max-width: 900px;
     }
 
     .hero-card {
       width: 100%;
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 40px 30px;
+      background: rgba(10, 10, 12, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 45px 35px;
       text-align: center;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95), 0 0 12px rgba(255, 255, 255, 0.03);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.1);
       display: flex;
       flex-direction: column;
       align-items: center;
+      backdrop-filter: blur(10px);
     }
 
-    /* اللوجو الأيقوني في منتصف الصفحة بأعلى الكرت */
     .main-hero-logo {
       width: 110px;
       height: 110px;
-      margin-bottom: 20px;
-      filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
+      margin-bottom: 24px;
+      filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.6));
+      transition: transform 0.4s ease;
+    }
+
+    .main-hero-logo:hover {
+      transform: scale(1.05) rotate(2deg);
     }
 
     .hero-card h1 {
-      font-size: 2.2rem;
+      font-size: 2.4rem;
       color: #fff;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
       letter-spacing: 1px;
     }
 
     .hero-card p {
       color: #c9d1d9;
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       line-height: 1.8;
+      max-width: 750px;
+    }
+
+    /* --- شبكة الكروت --- */
+    .sections-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .top-nav-links { display: none; }
+      .sections-grid { grid-template-columns: 1fr; }
     }
 
     .card {
       width: 100%;
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(10, 10, 12, 0.6);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
-      padding: 24px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95), 0 0 12px rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      padding: 26px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(8px);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-4px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.95), 0 0 15px rgba(255, 255, 255, 0.05);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
     }
 
     .card h3 {
-      margin-bottom: 8px;
+      font-size: 1.3rem;
+      font-weight: 700;
       color: #58a6ff;
+      letter-spacing: 0.5px;
+    }
+
+    .card-tag {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     .card p {
       color: #8b949e;
       line-height: 1.6;
+      font-size: 0.98rem;
     }
   </style>
 </head>
@@ -248,30 +353,48 @@
 
   <!-- Navbar -->
   <header class="navbar">
-    <div class="brand">
-      <!-- رسم اللوجو الـ C والـ IV بشكل حاد وواضح جداً -->
-      <svg class="brand-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <!-- حرف C الشهاب الحاد -->
-        <path d="M 80 20 C 50 5, 10 25, 15 55 C 20 85, 55 95, 85 80 L 75 70 C 55 80, 28 72, 26 55 C 24 38, 50 20, 72 30 Z" fill="#ffffff"/>
-        <polygon points="80,20 68,32 90,15" fill="#ffffff"/>
-        <!-- IV الداخلي -->
-        <rect x="38" y="38" width="6" height="26" fill="#ffffff"/>
-        <polygon points="50,38 56,38 64,56 72,38 78,38 67,64 61,64" fill="#ffffff"/>
-      </svg>
-      <span class="brand-title">IVcode</span>
+    <div class="brand-container">
+      <div class="brand" hx-get="/api/view/all" hx-target="#main-view" hx-swap="innerHTML">
+        <svg class="brand-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 80 20 C 50 5, 10 25, 15 55 C 20 85, 55 95, 85 80 L 75 70 C 55 80, 28 72, 26 55 C 24 38, 50 20, 72 30 Z" fill="#ffffff"/>
+          <polygon points="80,20 68,32 90,15" fill="#ffffff"/>
+          <rect x="38" y="38" width="6" height="26" fill="#ffffff"/>
+          <polygon points="50,38 56,38 64,56 72,38 78,38 67,64 61,64" fill="#ffffff"/>
+        </svg>
+        <span class="brand-title">IVcode</span>
+      </div>
+
+      <!-- القوائم الرئيسية متصلة بـ Go مباشرة بواسطة HTMX -->
+      <ul class="top-nav-links">
+        <li><button hx-get="/api/view/gitIV" hx-target="#main-view" hx-swap="innerHTML">gitIV</button></li>
+        <li><button hx-get="/api/view/IVstore" hx-target="#main-view" hx-swap="innerHTML">IVstore</button></li>
+        <li><button hx-get="/api/view/for-cus" hx-target="#main-view" hx-swap="innerHTML">for cus</button></li>
+        <li><button hx-get="/api/view/IVs-devss" hx-target="#main-view" hx-swap="innerHTML">IVs devss</button></li>
+      </ul>
     </div>
 
-    <div class="search-bar">
-      <input type="text" placeholder="Type / to search..." />
+    <!-- شريط البحث الحي متصل بسيرفر Go مباشر -->
+    <div class="search-container">
+      <div class="search-bar">
+        <input type="text" 
+               name="q" 
+               placeholder="Type / to search..." 
+               hx-get="/api/search" 
+               hx-trigger="keyup changed delay:250ms" 
+               hx-target="#search-results" 
+               hx-swap="innerHTML" />
+      </div>
+      <div id="search-results"></div>
     </div>
 
-    <div style="font-size: 0.9rem; color: #8b949e;">Profile</div>
+    <div class="nav-actions">
+      <span style="cursor: pointer;" hx-get="/api/profile" hx-target="#main-view" hx-swap="innerHTML">Profile</span>
+    </div>
   </header>
 
   <div class="app-container">
     <main class="content-area">
       <div class="hero-card">
-        <!-- لوجو الصفحة الكبير في المنتصف -->
         <svg class="main-hero-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
           <path d="M 80 20 C 50 5, 10 25, 15 55 C 20 85, 55 95, 85 80 L 75 70 C 55 80, 28 72, 26 55 C 24 38, 50 20, 72 30 Z" fill="#ffffff"/>
           <polygon points="80,20 68,32 90,15" fill="#ffffff"/>
@@ -283,14 +406,43 @@
         <p>This is IVcode, a company for software projects and developer tools. Welcome to the ultimate open-source swamp. I work endlessly (solo as the CEO) to satisfy and empower every user.</p>
       </div>
 
-      <div class="card">
-        <h3>Open Source Projects</h3>
-        <p>Explore tools, custom software, and community-driven repositories.</p>
-      </div>
+      <!-- المنطقة التفاعلية الحية اللي بتتبدل فوراً بناءً على طلبات السيرفر -->
+      <div id="main-view" class="sections-grid">
+        <!-- gitIV -->
+        <div class="card" id="gitIV">
+          <div class="card-header">
+            <h3>gitIV</h3>
+            <span class="card-tag">Platform</span>
+          </div>
+          <p>The core version-control and source code management platform designed for hosting repositories, managing code releases, and syncing open-source builds.</p>
+        </div>
 
-      <div class="card">
-        <h3>Latest Updates</h3>
-        <p>Stay tuned for new releases, tool builds, and feature deployments.</p>
+        <!-- IVstore -->
+        <div class="card" id="IVstore">
+          <div class="card-header">
+            <h3>IVstore</h3>
+            <span class="card-tag">Marketplace</span>
+          </div>
+          <p>A dedicated hardware marketplace for selling and acquiring customized hardware components, rigs, and tailored tech equipment exclusively from IVcode.</p>
+        </div>
+
+        <!-- for cus -->
+        <div class="card" id="for-cus">
+          <div class="card-header">
+            <h3>for cus</h3>
+            <span class="card-tag">Solutions</span>
+          </div>
+          <p>Custom tailored software solutions, personalized developer tools, and client-centric workflows engineered to address specific user needs.</p>
+        </div>
+
+        <!-- IVs devss -->
+        <div class="card" id="IVs-devss">
+          <div class="card-header">
+            <h3>IVs devss</h3>
+            <span class="card-tag">Ecosystem</span>
+          </div>
+          <p>The official developer hub and ecosystem for builders, hosting SDKs, low-level technical documentation, and community tools.</p>
+        </div>
       </div>
     </main>
   </div>
